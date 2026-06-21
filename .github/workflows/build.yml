@@ -1,5 +1,8 @@
 name: build-influxd
-on: { workflow_dispatch: {} }
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [dev-add-flux-profiler-support_CI]
 jobs:
   build:
     runs-on: ubuntu-latest
