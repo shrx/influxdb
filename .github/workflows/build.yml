@@ -20,6 +20,7 @@ jobs:
           echo "rustlib=$rustlib"
           ldflags='-s -w -linkmode=external -extld='"${CC}"' -extldflags "-fno-PIC -static-pie -Wl,-z,stack-size=8388608 -L'"${rustlib}"' -Wl,-lunwind"'
           go build \
+            -buildvcs=false \
             -tags="netgo,osusergo,static_build" \
             -buildmode=pie \
             -ldflags="${ldflags}" \
