@@ -14,13 +14,12 @@ jobs:
         shell: bash
         run: |
           export HOME=/root
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           export GOOS=linux GOARCH=arm64 CGO_ENABLED=1
           export CC="$(xcc linux aarch64)"
           rustlib="$(find_rustlib_path aarch64-unknown-linux-musl)"
-          echo "rustlib=$rustlib"
           ldflags='-s -w -linkmode=external -extld='"${CC}"' -extldflags "-fno-PIC -static-pie -Wl,-z,stack-size=8388608 -L'"${rustlib}"' -Wl,-lunwind"'
           go build \
-            -buildvcs=false \
             -tags="netgo,osusergo,static_build" \
             -buildmode=pie \
             -ldflags="${ldflags}" \
