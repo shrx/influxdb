@@ -686,9 +686,9 @@ func (q *Query) Done() {
 				// this so maybe their interface should change?
 				q.err = q.exec.Err()
 			}
-			// Merge the metadata from the program into the controller stats.
-			stats := q.exec.Statistics()
-			q.stats.Metadata = stats.Metadata
+			// Merge the full executor statistics (operator profiles, metadata)
+			// into the controller stats.
+			q.mergeQueryStats(q.exec.Statistics())
 		}
 
 		// Retrieve the runtime errors that have been accumulated.
@@ -720,6 +720,23 @@ func (q *Query) Done() {
 
 	})
 	<-q.doneCh
+}
+
+func (q *Query) mergeQueryStats(other flux.Statistics) {
+	// Durations and resource counters are tracked by the controller; zero them
+	// on the executor stats so Add does not double-count. Profiles and Metadata
+	// carry over.
+	other.TotalDuration = 0
+	other.CompileDuration = 0
+	other.QueueDuration = 0
+	other.PlanDuration = 0
+	other.RequeueDuration = 0
+	other.ExecuteDuration = 0
+	other.Concurrency = 0
+	other.MaxAllocated = 0
+	other.TotalAllocated = 0
+	other.RuntimeErrors = nil
+	q.stats = q.stats.Add(other)
 }
 
 // Statistics reports the statistics for the query.

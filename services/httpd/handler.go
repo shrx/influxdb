@@ -2258,12 +2258,13 @@ func (h *Handler) serveFluxQuery(w http.ResponseWriter, r *http.Request, user me
 		atomic.AddInt64(&h.stats.FluxQueryRequestBytesTransmitted, int64(n))
 		h.addQueryBytesForUser(userName, int64(n))
 
-		// Emit profiler result tables (profiler/query, profiler/operator) when
-        // the query enabled them via `option profiler.enabledProfilers`.
-        if presults, perr := q.ProfilerResults(); perr == nil && presults != nil {
-            pn, _ := encoder.Encode(w, presults)
-            atomic.AddInt64(&h.stats.FluxQueryRequestBytesTransmitted, int64(pn))
-        }
+		// Finalize the query (drains results, merges executor statistics
+		// including operator profiles) before emitting profiler tables.
+		results.Release()
+		if presults, perr := q.ProfilerResults(); perr == nil && presults != nil {
+			pn, _ := encoder.Encode(w, presults)
+			atomic.AddInt64(&h.stats.FluxQueryRequestBytesTransmitted, int64(pn))
+		}
 	}
 }
 
